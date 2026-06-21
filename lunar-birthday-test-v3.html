@@ -148,8 +148,27 @@
       if(year<1900||year>2100||date.getUTCFullYear()!==year||date.getUTCMonth()!==month-1||date.getUTCDate()!==day) return null;
       return {year,month,day,date,source:`${mode==='roc'?'民國':'西元'}${sourceYear}年${month}月${day}日`};
     }
-    function chineseMonth(raw){const leap=/閏|闰/.test(raw);const n=Number(String(raw).replace(/[^0-9]/g,''));const label=n===1?'正':n===11?'冬':n===12?'臘':CN[n]||String(n);return `${leap?'閏':''}${label}月`}
-    function chineseDay(raw){const n=Number(String(raw).replace(/[^0-9]/g,''));if(n<=10)return`初${CN[n]}`;if(n<20)return`十${CN[n-10]}`;if(n===20)return'二十';if(n<30)return`廿${CN[n-20]}`;return'三十'}
+    function chineseMonth(raw){
+      const value=String(raw||'').replace(/\s/g,'').replace(/闰/g,'閏');
+      if(/^[閏]?[正冬臘一二三四五六七八九十]+月$/.test(value)) return value;
+      const digits=value.replace(/[^0-9]/g,'');
+      if(!digits) return value||'—';
+      const n=Number(digits);
+      const label=n===1?'正':n===11?'冬':n===12?'臘':CN[n]||String(n);
+      return `${/閏/.test(value)?'閏':''}${label}月`;
+    }
+    function chineseDay(raw){
+      const value=String(raw||'').replace(/\s/g,'');
+      if(/^(初[一二三四五六七八九十]|十[一二三四五六七八九]?|二十|廿[一二三四五六七八九]|三十)$/.test(value)) return value;
+      const digits=value.replace(/[^0-9]/g,'');
+      if(!digits) return value||'—';
+      const n=Number(digits);
+      if(n<=10)return`初${CN[n]}`;
+      if(n<20)return`十${CN[n-10]}`;
+      if(n===20)return'二十';
+      if(n<30)return`廿${CN[n-20]}`;
+      return'三十';
+    }
     function convert(showError=true){
       errorBox.classList.remove('show');
       const data=getData();
