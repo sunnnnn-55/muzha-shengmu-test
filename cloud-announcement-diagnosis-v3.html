@@ -5,19 +5,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>木柵聖母宮｜雲端公告診斷</title>
   <style>
-    body{margin:0;background:#f7efe3;color:#3b2a1b;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC",sans-serif}.wrap{max-width:720px;margin:auto;padding:28px 16px 60px}.brand{padding:14px 16px;background:#15110e;color:#f6dfac;font-family:serif;letter-spacing:.12em}.card{margin-top:18px;padding:18px;border:1px solid #dac4a1;border-radius:12px;background:#fffaf1}.ok{border-color:#9fc9ae;background:#eff8f1;color:#225b40}.bad{border-color:#d5a19a;background:#fff1ed;color:#87342c}.muted{color:#765f48;line-height:1.7}.post{margin-top:12px;padding:15px;border:1px solid #dac4a1;border-radius:10px;background:#fffdf7}.badge{display:inline-block;padding:3px 8px;border-radius:99px;background:#e5f1e8;border:1px solid #a8c9b1;color:#276249;font-size:12px}.post h2{margin:9px 0 6px;font-size:22px}.post p{margin:0;line-height:1.7;color:#705f4d}.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;font-size:12px;line-height:1.6}
+    body{margin:0;background:#f7efe3;color:#3b2a1b;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC",sans-serif}.wrap{max-width:720px;margin:auto;padding:28px 16px 60px}.brand{padding:14px 16px;background:#15110e;color:#f6dfac;font-family:serif;letter-spacing:.12em}.card{margin-top:18px;padding:18px;border:1px solid #dac4a1;border-radius:12px;background:#fffaf1}.ok{border-color:#9fc9ae;background:#eff8f1;color:#245d42}.bad{border-color:#d5a19a;background:#fff1ed;color:#87342c}.muted{color:#765f48;line-height:1.7}.post{margin-top:12px;padding:15px;border:1px solid #dac4a1;border-radius:10px;background:#fffdf7}.badge{display:inline-block;padding:3px 8px;border-radius:99px;background:#e5f1e8;border:1px solid #a8c9b1;color:#276249;font-size:12px}.post h2{margin:9px 0 6px;font-size:22px}.post p{margin:0;color:#705f4d;line-height:1.7}.meta{margin-top:8px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;line-height:1.6;word-break:break-all}
   </style>
 </head>
 <body>
   <div class="brand">木柵聖母宮｜雲端公告診斷</div>
   <main class="wrap">
-    <h1>公告讀取測試</h1>
-    <p class="muted">此頁只讀取雲端已發布公告，不新增、不修改任何資料。</p>
+    <h1>匿名訪客讀取測試</h1>
+    <p class="muted">這次不使用「已發布」篩選；只檢查一般訪客是否看得到任何公告資料。此頁只讀取，不會修改資料。</p>
     <section id="status" class="card">正在讀取…</section>
     <section id="posts"></section>
   </main>
   <script>
-    const url='https://iqblaloesmlpcklomxxy.supabase.co/rest/v1/announcements?select=category,title,content,is_pinned,status,published_at,created_at&status=eq.published&order=is_pinned.desc,created_at.desc&limit=5';
+    const url='https://iqblaloesmlpcklomxxy.supabase.co/rest/v1/announcements?select=category,title,content,is_pinned,status,published_at,created_at&order=created_at.desc&limit=5';
     const key='sb_publishable_1VWA5w7QeqO5d5QurTvlBA_-IRotyjE';
     const status=document.getElementById('status');
     const posts=document.getElementById('posts');
@@ -29,11 +29,11 @@
         let data=[];try{data=JSON.parse(raw)}catch(_){}
         if(!r.ok) throw new Error('HTTP '+r.status+'｜'+raw.slice(0,240));
         status.className='card ok';
-        status.innerHTML='<b>雲端讀取成功</b><br>讀到 '+data.length+' 筆已發布公告。';
-        posts.innerHTML=data.length?data.map(x=>'<article class="post"><span class="badge">'+esc((x.is_pinned?'置頂公告｜':'')+(x.category||'一般公告'))+'</span><h2>'+esc(x.title)+'</h2><p>'+esc(x.content)+'</p></article>').join(''):'<article class="post"><b>資料庫回傳 0 筆公告</b><p>代表連線與權限正常，但篩選條件下沒有資料。</p></article>';
+        status.innerHTML='<b>雲端讀取成功</b><br>匿名訪客目前讀到 '+data.length+' 筆公告。';
+        posts.innerHTML=data.length?data.map(x=>'<article class="post"><span class="badge">'+esc(x.category||'一般公告')+'</span><h2>'+esc(x.title)+'</h2><p>'+esc(x.content)+'</p><div class="meta">status：'+esc(x.status)+'<br>is_pinned：'+esc(x.is_pinned)+'<br>published_at：'+esc(x.published_at)+'</div></article>').join(''):'<article class="post"><b>匿名訪客目前讀不到任何公告</b><p>這代表 RLS 公開讀取規則仍未生效；資料本身沒有被刪除。</p></article>';
       }catch(e){
         status.className='card bad';
-        status.innerHTML='<b>讀取失敗</b><p class="code">'+esc(e.message)+'</p>';
+        status.innerHTML='<b>讀取失敗</b><p>'+esc(e.message)+'</p>';
         posts.innerHTML='';
       }
     })();
