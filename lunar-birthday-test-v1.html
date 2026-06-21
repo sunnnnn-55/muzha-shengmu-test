@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>木柵聖母宮｜國曆轉農曆生日測試</title>
+  <style>
+    :root{--ink:#3b2a1b;--paper:#f7efe3;--card:#fffaf1;--red:#8d3028;--gold:#cba15b;--line:#d9c39f;--green:#276249}
+    *{box-sizing:border-box}
+    body{margin:0;background:#0d0c0b;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC",sans-serif}
+    .site{max-width:820px;min-height:100vh;margin:auto;background:var(--paper)}
+    .top{padding:17px 16px;background:#16120f;color:#f7e4ba;border-bottom:3px solid #7e2d26}
+    .top b{font-family:serif;font-size:20px;letter-spacing:.14em}
+    .top small{display:block;margin-top:6px;color:#d9b777;font-size:12px;letter-spacing:.06em}
+    main{padding:30px 16px 56px}
+    h1{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-family:serif;font-size:30px;letter-spacing:.08em}
+    h1:before{content:"";width:20px;height:20px;transform:rotate(45deg);background:var(--red);border:1px solid #d8af69}
+    .lead{margin:0 0 21px;color:#725f4c;line-height:1.75}
+    .card{padding:18px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+    label{display:block;margin-bottom:8px;font-size:14px;font-weight:700}
+    label span{font-weight:400;color:#806c58}
+    input{width:100%;height:52px;padding:0 13px;border:1px solid #cbb38d;border-radius:8px;background:#fffdf8;color:var(--ink);font-size:18px}
+    button{width:100%;height:52px;margin-top:13px;border:0;border-radius:8px;background:linear-gradient(135deg,#8d3028,#5b1e19);color:#fff0cd;font-size:17px;font-weight:700;letter-spacing:.06em}
+    button:active{transform:scale(.99)}
+    .result{display:none;margin-top:18px;padding:18px;background:#fffdf8;border:1px solid var(--line);border-radius:12px}
+    .result.show{display:block}
+    .result .tag{display:inline-block;padding:4px 9px;border:1px solid #a8c9b1;border-radius:99px;background:#e8f4ea;color:var(--green);font-size:12px}
+    .result h2{margin:12px 0 8px;font-family:serif;font-size:26px;line-height:1.35}
+    .result p{margin:6px 0;color:#705f4d;line-height:1.7}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+    .item{padding:12px;border:1px solid #ead8b9;border-radius:9px;background:#fffaf1}
+    .item small{display:block;color:#8a745d;font-size:12px}
+    .item b{display:block;margin-top:5px;font-size:16px;line-height:1.45}
+    .hint{margin-top:20px;padding:14px;border-left:3px solid var(--gold);background:#fff7e9;color:#705f4d;font-size:13px;line-height:1.75}
+    .error{display:none;margin-top:14px;padding:13px;border:1px solid #d89e93;border-radius:8px;background:#fff1ed;color:#87342c;line-height:1.6}
+    .error.show{display:block}
+  </style>
+</head>
+<body>
+  <div class="site">
+    <header class="top">
+      <b>木柵聖母宮</b>
+      <small>國曆生日 → 農曆生日｜獨立功能測試</small>
+    </header>
+    <main>
+      <h1>生日換算</h1>
+      <p class="lead">香客只要選擇國曆生日，系統會顯示農曆日期與是否為閏月。此頁不會儲存任何資料。</p>
+
+      <section class="card">
+        <label for="solarDate">國曆生日 <span>（西元年月日）</span></label>
+        <input id="solarDate" type="date" min="1900-01-31" max="2100-12-31" autocomplete="bday">
+        <button id="convertBtn" type="button">換算農曆生日</button>
+        <div id="error" class="error"></div>
+      </section>
+
+      <section id="result" class="result" aria-live="polite">
+        <span class="tag">換算結果</span>
+        <h2 id="lunarFull">—</h2>
+        <p id="solarFull">—</p>
+        <div class="grid">
+          <div class="item"><small>農曆月日</small><b id="lunarMonthDay">—</b></div>
+          <div class="item"><small>是否閏月</small><b id="isLeapMonth">—</b></div>
+        </div>
+      </section>
+
+      <div class="hint">
+        這是第一階段介面測試，使用手機瀏覽器的農曆行事曆功能換算，時區固定為台北。正式放入點燈與安太歲前，會再測試農曆年前後與閏月案例，避免資料誤判。
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const input=document.getElementById('solarDate');
+    const button=document.getElementById('convertBtn');
+    const result=document.getElementById('result');
+    const errorBox=document.getElementById('error');
+    const lunarFull=document.getElementById('lunarFull');
+    const solarFull=document.getElementById('solarFull');
+    const lunarMonthDay=document.getElementById('lunarMonthDay');
+    const isLeapMonth=document.getElementById('isLeapMonth');
+
+    function parseTaipeiDate(value){
+      if(!value) return null;
+      const parts=value.split('-').map(Number);
+      if(parts.length!==3 || parts.some(Number.isNaN)) return null;
+      return new Date(Date.UTC(parts[0],parts[1]-1,parts[2],4,0,0));
+    }
+
+    function formatSolar(value){
+      const [y,m,d]=value.split('-').map(Number);
+      return `國曆：${y} 年 ${m} 月 ${d} 日`;
+    }
+
+    function convert(){
+      errorBox.classList.remove('show');
+      result.classList.remove('show');
+      const date=parseTaipeiDate(input.value);
+      if(!date){
+        errorBox.textContent='請先選擇國曆生日。';
+        errorBox.classList.add('show');
+        return;
+      }
+      try{
+        const formatter=new Intl.DateTimeFormat('zh-TW-u-ca-chinese',{
+          year:'numeric',month:'long',day:'numeric',timeZone:'Asia/Taipei'
+        });
+        const full=formatter.format(date);
+        const parts=formatter.formatToParts(date);
+        const month=parts.find(p=>p.type==='month')?.value||'';
+        const day=parts.find(p=>p.type==='day')?.value||'';
+        const hasLeap=/閏|闰/.test(full+month);
+
+        lunarFull.textContent=`農曆：${full}`;
+        solarFull.textContent=formatSolar(input.value);
+        lunarMonthDay.textContent=(month||day)?`${month}${day?' '+day+' 日':''}`:'請以完整農曆日期為準';
+        isLeapMonth.textContent=hasLeap?'是，請宮務人員確認辦理月份':'否';
+        result.classList.add('show');
+      }catch(err){
+        errorBox.textContent='此手機瀏覽器暫時無法換算農曆。請更新 Safari 後再試。';
+        errorBox.classList.add('show');
+      }
+    }
+
+    button.addEventListener('click',convert);
+    input.addEventListener('change',convert);
+  </script>
+</body>
+</html>
