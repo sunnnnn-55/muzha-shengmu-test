@@ -1,32 +1,51 @@
-const KEY='msm_v1_demo_state';
+const SUPABASE_URL='https://iqblaloesmlpcklomxxy.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_1VWA5w7QeqO5d5QurTvlBA_-IRotyjE';
 const FALLBACK=[
-  {type:'活動公告',title:'【公告樣板】南巡進香活動資訊',body:'活動日期、集合地點、費用與報名方式摘要。',top:true},
-  {type:'服務公告',title:'【公告樣板】年度點燈祈福登記',body:'燈別、登記時間、費用與確認方式摘要。',top:false},
-  {type:'宮務公告',title:'【公告樣板】本宮服務時間與聯絡方式',body:'服務時間、聯絡窗口與特別提醒摘要。',top:false}
+  {type:'公告狀態',title:'公告暫時無法載入',body:'請稍後重新整理，或以宮務後台公告管理為準。',top:false}
 ];
-function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));}
-function getAnnouncementState(){
-  try{
-    const state=JSON.parse(localStorage.getItem(KEY)||'{}');
-    if(Array.isArray(state.announcements)){
-      return {managed:true,items:state.announcements.filter(item=>item.active!==false)};
-    }
-  }catch(error){}
-  return {managed:false,items:[]};
+function escapeHtml(value){return String(value??'').replace(/[&<>"\']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));}
+function setSubtitle(){
+  const sub=document.querySelector('#notice .sub');
+  if(sub) sub.textContent='同步讀取雲端資料庫中「已發布」的公告；置頂公告會優先顯示。';
 }
-function renderAnnouncements(){
+async function getCloudAnnouncements(){
+  const endpoint=SUPABASE_URL+'/rest/v1/announcements?select=category,title,content,is_pinned,status,created_at&status=eq.published&order=is_pinned.desc,created_at.desc&limit=5';
+  const response=await fetch(endpoint,{
+    headers:{
+      apikey:SUPABASE_PUBLISHABLE_KEY,
+      Authorization:'Bearer '+SUPABASE_PUBLISHABLE_KEY,
+      Accept:'application/json'
+    }
+  });
+  if(!response.ok) throw new Error('HTTP '+response.status);
+  const rows=await response.json();
+  return rows.map(row=>({
+    type:row.category||'一般公告',
+    title:row.title||'未命名公告',
+    body:row.content||'',
+    top:Boolean(row.is_pinned)
+  }));
+}
+function renderPosts(posts){
   const box=document.getElementById('homepagePosts');
-  if(!box)return;
-  const result=getAnnouncementState();
-  let posts=result.managed?result.items:FALLBACK;
-  posts=posts.slice().sort((a,b)=>Number(Boolean(b.top))-Number(Boolean(a.top))).slice(0,3);
+  if(!box) return;
   if(!posts.length){
-    box.innerHTML='<div class="post"><span class="badge">公告狀態</span><h3>目前沒有顯示中的公告</h3><p>請以宮務後台的公告管理設定為準。</p></div>';
+    box.innerHTML='<div class="post"><span class="badge">公告狀態</span><h3>目前沒有已發布公告</h3><p>請以宮務後台公告管理設定為準。</p></div>';
     return;
   }
   box.innerHTML=posts.map(post=>{
     const label=(post.top?'置頂公告｜':'')+(post.type||'一般公告');
-    return '<a class="post" href="announcements-test.html"><span class="badge '+(post.top?'is-pinned':'')+'">'+escapeHtml(label)+'</span><h3>'+escapeHtml(post.title||'未命名公告')+'</h3><p>'+escapeHtml(post.body||post.content||'')+'</p></a>';
+    return '<a class="post" href="announcements-test.html"><span class="badge '+(post.top?'is-pinned':'')+'">'+escapeHtml(label)+'</span><h3>'+escapeHtml(post.title)+'</h3><p>'+escapeHtml(post.body)+'</p></a>';
   }).join('');
+}
+async function renderAnnouncements(){
+  setSubtitle();
+  const box=document.getElementById('homepagePosts');
+  if(box) box.innerHTML='<div class="post"><span class="badge">公告讀取中</span><h3>正在讀取雲端公告</h3><p>請稍候。</p></div>';
+  try{
+    renderPosts(await getCloudAnnouncements());
+  }catch(error){
+    renderPosts(FALLBACK);
+  }
 }
 renderAnnouncements();
