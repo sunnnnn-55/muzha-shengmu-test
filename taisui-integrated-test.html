@@ -1,1 +1,115 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>安太歲｜木柵聖母宮</title><style>body{margin:0;background:#17110e;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC",sans-serif;color:#382719}.w{max-width:720px;min-height:100vh;margin:auto;background:#f7efe3}.h{padding:32px 18px;background:linear-gradient(135deg,#65221b,#160e0c);color:#ffe7b7}.h h1{margin:8px 0;font-family:serif;letter-spacing:.12em;font-size:34px}.h p{margin:0;color:#dec7a1;font-size:14px;line-height:1.7}.m{padding:20px 16px}.n{padding:14px;border-left:4px solid #8d3028;background:#f0e1ca;line-height:1.7;font-size:13px}.b{margin-top:18px;padding:17px;border:1px solid #dac4a1;border-radius:10px;background:#fffaf1}.b h2{margin:0 0 8px;font-family:serif;font-size:22px}.f{display:grid;gap:6px;margin:12px 0}.f input,.f select,.f textarea{padding:12px;border:1px solid #d8cbb8;border-radius:10px;font:inherit}.f textarea{min-height:65px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.go{width:100%;padding:14px;border:0;border-radius:10px;background:#76241d;color:#ffe8b9;font-size:16px;font-weight:800}.r{margin-top:15px;padding:16px;border:1px solid #bfd8c5;border-radius:10px;background:#f0f9f2;line-height:1.85}.pill{display:inline-block;margin:7px 6px 0 0;padding:4px 9px;border-radius:99px;background:#fff0cf;color:#855a12;font-size:12px;font-weight:800}</style></head><body><div class="w"><header class="h"><small>PEACE RITUAL · TEST</small><h1>安太歲</h1><p>前台測試登記與查詢。年度費用與正式規範待宮方公告。</p></header><main class="m"><div class="n"><b>安太歲整合測試頁。</b><br>請使用假姓名與假電話；資料只存於這台裝置。</div><form class="b" id="register"><h2>測試登記</h2><div class="row"><label class="f">登記人姓名<input id="name" required placeholder="測試香客A"></label><label class="f">手機號碼<input id="phone" required inputmode="numeric" placeholder="0912345678"></label></div><div class="row"><label class="f">祈福對象<input id="target" required placeholder="測試對象A"></label><label class="f">生肖<select id="zodiac"><option>鼠</option><option>牛</option><option>虎</option><option>兔</option><option>龍</option><option>蛇</option><option>馬</option><option>羊</option><option>猴</option><option>雞</option><option>狗</option><option>豬</option></select></label></div><label class="f">農曆生日（可留白）<input id="birth" placeholder="農曆八月十五日"></label><label class="f">備註（可留白）<textarea id="note" placeholder="平安順遂"></textarea></label><button class="go" type="submit">送出安太歲測試登記</button></form><div id="created"></div><section class="b"><h2>登記查詢</h2><div class="row"><label class="f">安太歲碼<input id="code" placeholder="PEA-2026-0001"></label><label class="f">手機末四碼<input id="last" maxlength="4" inputmode="numeric" placeholder="1234"></label></div><button class="go" type="button" id="query">查詢測試資料</button></section><div id="out"></div></main></div><script src="taisui-integrated-test.js"></script></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>安太歲｜木柵聖母宮</title>
+  <style>
+    :root{--ink:#382719;--paper:#f7efe3;--card:#fffaf1;--red:#76241d;--red2:#65221b;--gold:#d8bc88;--line:#dac4a1;--green:#28624a;--muted:#755f4d}
+    *{box-sizing:border-box}
+    body{margin:0;background:#17110e;font-family:-apple-system,BlinkMacSystemFont,"PingFang TC",sans-serif;color:var(--ink)}
+    .w{max-width:720px;min-height:100vh;margin:auto;background:var(--paper)}
+    .h{padding:32px 18px;background:linear-gradient(135deg,var(--red2),#160e0c);color:#ffe7b7}
+    .h h1{margin:8px 0;font-family:serif;letter-spacing:.12em;font-size:34px}
+    .h p{margin:0;color:#dec7a1;font-size:14px;line-height:1.7}
+    .m{padding:20px 16px 52px}
+    .n{padding:14px;border-left:4px solid #8d3028;background:#f0e1ca;line-height:1.7;font-size:13px}
+    .b{margin-top:18px;padding:17px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+    .b h2{margin:0 0 8px;font-family:serif;font-size:22px}
+    .f{display:grid;gap:6px;margin:12px 0;font-weight:700;font-size:14px}
+    .f input,.f select,.f textarea{padding:12px;border:1px solid #d8cbb8;border-radius:10px;background:#fffdf8;font:inherit;color:var(--ink)}
+    .f textarea{min-height:65px;resize:vertical}
+    .f input[readonly]{background:#f2ece2;color:#5e4d3c}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .birthPanel{margin:16px 0;padding:15px;border:1px solid #d5bd93;border-radius:10px;background:#fff8ec}
+    .birthPanel h3{margin:0 0 8px;font-size:17px;font-family:serif}
+    .birthPanel p{margin:0;color:var(--muted);font-size:13px;line-height:1.65}
+    .mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:13px 0}
+    .mode button{height:46px;border:1px solid #cdb68f;border-radius:9px;background:#fffaf1;color:#765f46;font-size:15px;font-weight:800}
+    .mode button.active{background:var(--red);border-color:var(--red);color:#ffe9ba}
+    .dateRow{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:8px;margin-top:9px}
+    .dateCell input{width:100%;height:50px;padding:8px;border:1px solid #d8cbb8;border-radius:9px;background:#fffdf8;font-size:20px;font-weight:800;text-align:center}
+    .dateCell span{display:block;margin-top:5px;text-align:center;color:#806a53;font-size:12px}
+    input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+    input[type=number]{-moz-appearance:textfield}
+    .picker{margin-top:15px;padding-top:13px;border-top:1px dashed #d4bd95}
+    .picker label{display:block;margin-bottom:7px;font-size:14px;font-weight:700}
+    .picker input{width:100%;height:50px;padding:10px;border:1px solid #d8cbb8;border-radius:9px;background:#fffdf8;font:inherit}
+    .birthPreview{display:none;margin-top:14px;padding:13px;border:1px solid #b8d5be;border-radius:10px;background:#eff8f0;line-height:1.72}
+    .birthPreview.show{display:block}
+    .birthPreview b{display:block;font-size:17px;color:#275840}
+    .birthPreview span{display:block;margin-top:5px;color:#5f725f;font-size:13px}
+    .birthError{display:none;margin-top:13px;padding:11px;border:1px solid #d89e93;border-radius:9px;background:#fff1ed;color:#87342c;line-height:1.6;font-size:13px}
+    .birthError.show{display:block}
+    .go{width:100%;padding:14px;border:0;border-radius:10px;background:var(--red);color:#ffe8b9;font-size:16px;font-weight:800}
+    .r{margin-top:15px;padding:16px;border:1px solid #bfd8c5;border-radius:10px;background:#f0f9f2;line-height:1.85}
+    .pill{display:inline-block;margin:7px 6px 0 0;padding:4px 9px;border-radius:99px;background:#fff0cf;color:#855a12;font-size:12px;font-weight:800}
+    @media(max-width:430px){.row{grid-template-columns:1fr}.dateRow{grid-template-columns:1.15fr .8fr .8fr}}
+  </style>
+</head>
+<body>
+  <div class="w">
+    <header class="h">
+      <small>PEACE RITUAL · TEST</small>
+      <h1>安太歲</h1>
+      <p>前台測試登記與查詢。年度費用與正式規範待宮方公告。</p>
+    </header>
+
+    <main class="m">
+      <div class="n"><b>安太歲整合測試頁。</b><br>請使用假姓名與假電話；資料只存於這台裝置。</div>
+
+      <form class="b" id="register">
+        <h2>測試登記</h2>
+        <div class="row">
+          <label class="f">登記人姓名<input id="name" required placeholder="測試香客A"></label>
+          <label class="f">手機號碼<input id="phone" required inputmode="numeric" placeholder="0912345678"></label>
+        </div>
+        <div class="row">
+          <label class="f">祈福對象<input id="target" required placeholder="測試對象A"></label>
+          <label class="f">生肖 <input id="zodiac" readonly placeholder="請先填寫生日"></label>
+        </div>
+
+        <section class="birthPanel" aria-label="生日自動換算">
+          <h3>生日自動換算</h3>
+          <p>可輸入西元或民國年。農曆生日、生肖與閏月會自動帶入。</p>
+          <div class="mode">
+            <button id="westernMode" class="active" type="button">輸入西元生日</button>
+            <button id="rocMode" type="button">輸入民國生日</button>
+          </div>
+          <div class="dateRow">
+            <label class="dateCell"><input id="birthYear" type="number" inputmode="numeric" min="1" max="2100" placeholder="1986"><span id="birthYearLabel">西元年</span></label>
+            <label class="dateCell"><input id="birthMonth" type="number" inputmode="numeric" min="1" max="12" placeholder="9"><span>月</span></label>
+            <label class="dateCell"><input id="birthDay" type="number" inputmode="numeric" min="1" max="31" placeholder="6"><span>日</span></label>
+          </div>
+          <div class="picker">
+            <label for="birthPicker">國曆日期選單（保留）</label>
+            <input id="birthPicker" type="date" min="1900-01-31" max="2100-12-31">
+          </div>
+          <div id="birthPreview" class="birthPreview">
+            <b id="lunarDisplay">—</b>
+            <span id="birthDetail">—</span>
+          </div>
+          <div id="birthError" class="birthError"></div>
+        </section>
+
+        <label class="f">農曆生日（系統自動帶入）<input id="birth" readonly placeholder="填寫生日後自動顯示"></label>
+        <label class="f">備註（可留白）<textarea id="note" placeholder="平安順遂"></textarea></label>
+        <button class="go" type="submit">送出安太歲測試登記</button>
+      </form>
+
+      <div id="created"></div>
+
+      <section class="b">
+        <h2>登記查詢</h2>
+        <div class="row">
+          <label class="f">安太歲碼<input id="code" placeholder="PEA-2026-0001"></label>
+          <label class="f">手機末四碼<input id="last" maxlength="4" inputmode="numeric" placeholder="1234"></label>
+        </div>
+        <button class="go" type="button" id="query">查詢測試資料</button>
+      </section>
+      <div id="out"></div>
+    </main>
+  </div>
+  <script src="taisui-integrated-test.js?v=20260622-birthday-v1"></script>
+</body>
+</html>
