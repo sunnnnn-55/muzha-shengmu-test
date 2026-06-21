@@ -9,8 +9,9 @@ function setSubtitle(){
   if(sub) sub.textContent='同步讀取雲端資料庫中「已發布」的公告；置頂公告會優先顯示。';
 }
 async function getCloudAnnouncements(){
-  const endpoint=SUPABASE_URL+'/rest/v1/announcements?select=category,title,content,is_pinned,status,created_at&status=eq.published&order=is_pinned.desc,created_at.desc&limit=5';
+  const endpoint=SUPABASE_URL+'/rest/v1/announcements?select=category,title,content,is_pinned,status,created_at&status=eq.published&order=is_pinned.desc,created_at.desc&limit=5&_ts='+Date.now();
   const response=await fetch(endpoint,{
+    cache:'no-store',
     headers:{
       apikey:SUPABASE_PUBLISHABLE_KEY,
       Authorization:'Bearer '+SUPABASE_PUBLISHABLE_KEY,
