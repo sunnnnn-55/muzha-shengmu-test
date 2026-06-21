@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>木柵聖母宮｜生日換算測試 V2</title>
+  <style>
+    :root{--ink:#3b2a1b;--paper:#f7efe3;--card:#fffaf1;--red:#8d3028;--gold:#cba15b;--line:#d9c39f;--green:#276249;--muted:#725f4c}
+    *{box-sizing:border-box}
+    body{margin:0;background:#0d0c0b;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang TC",sans-serif}
+    .site{max-width:820px;min-height:100vh;margin:auto;background:var(--paper)}
+    .top{padding:17px 16px;background:#16120f;color:#f7e4ba;border-bottom:3px solid #7e2d26}
+    .top b{font-family:serif;font-size:20px;letter-spacing:.14em}
+    .top small{display:block;margin-top:6px;color:#d9b777;font-size:12px;letter-spacing:.06em}
+    main{padding:28px 16px 56px}
+    h1{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-family:serif;font-size:30px;letter-spacing:.08em}
+    h1:before{content:"";width:20px;height:20px;transform:rotate(45deg);background:var(--red);border:1px solid #d8af69}
+    .lead{margin:0 0 20px;color:var(--muted);line-height:1.75}
+    .card,.result{padding:18px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+    .mode{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:18px}
+    .mode button{height:46px;border:1px solid #cbb38d;border-radius:8px;background:#fffaf1;color:#725f4c;font-size:16px;font-weight:700}
+    .mode button.active{background:#7c2c25;color:#fff0cd;border-color:#7c2c25}
+    label{display:block;margin:14px 0 8px;font-size:15px;font-weight:700}
+    label span{font-weight:400;color:#806c58}
+    input{width:100%;height:54px;padding:0 14px;border:1px solid #cbb38d;border-radius:8px;background:#fffdf8;color:var(--ink);font-size:20px}
+    .helper{margin:8px 0 0;color:#816d59;font-size:13px;line-height:1.6}
+    .pickerWrap{margin-top:18px;padding-top:16px;border-top:1px dashed #d9c39f}
+    .pickerWrap label{margin-top:0}
+    .primary{width:100%;height:52px;margin-top:16px;border:0;border-radius:8px;background:linear-gradient(135deg,#8d3028,#5b1e19);color:#fff0cd;font-size:17px;font-weight:700;letter-spacing:.06em}
+    .primary:active{transform:scale(.99)}
+    .result{display:none;margin-top:18px}
+    .result.show{display:block}
+    .tag{display:inline-block;padding:4px 9px;border:1px solid #a8c9b1;border-radius:99px;background:#e8f4ea;color:var(--green);font-size:12px}
+    .result h2{margin:12px 0 8px;font-family:serif;font-size:28px;line-height:1.35}
+    .result p{margin:6px 0;color:#705f4d;line-height:1.7}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+    .item{padding:12px;border:1px solid #ead8b9;border-radius:9px;background:#fffaf1}
+    .item.wide{grid-column:1 / -1}
+    .item small{display:block;color:#8a745d;font-size:12px}
+    .item b{display:block;margin-top:5px;font-size:16px;line-height:1.45}
+    .error{display:none;margin-top:14px;padding:13px;border:1px solid #d89e93;border-radius:8px;background:#fff1ed;color:#87342c;line-height:1.6}
+    .error.show{display:block}
+    .hint{margin-top:20px;padding:14px;border-left:3px solid var(--gold);background:#fff7e9;color:#705f4d;font-size:13px;line-height:1.75}
+  </style>
+</head>
+<body>
+  <div class="site">
+    <header class="top">
+      <b>木柵聖母宮</b>
+      <small>國曆／民國生日 → 農曆生日｜輸入測試 V2</small>
+    </header>
+    <main>
+      <h1>生日換算</h1>
+      <p class="lead">西元與民國日期都可直接手輸入；國曆選單也會保留。資料不會儲存。</p>
+
+      <section class="card">
+        <div class="mode">
+          <button id="westernMode" class="active" type="button">輸入西元生日</button>
+          <button id="rocMode" type="button">輸入民國生日</button>
+        </div>
+
+        <label id="manualLabel" for="manualDate">西元生日 <span>（可直接手打）</span></label>
+        <input id="manualDate" type="text" inputmode="numeric" autocomplete="bday" placeholder="例如：1986/09/06">
+        <p id="manualHint" class="helper">可輸入 1986/09/06、1986-09-06 或 1986年9月6日。</p>
+
+        <div class="pickerWrap">
+          <label for="solarPicker">國曆日期選單 <span>（保留給習慣選日期的人）</span></label>
+          <input id="solarPicker" type="date" min="1900-01-31" max="2100-12-31">
+          <p class="helper">選單一律使用西元日期；選完會自動帶入上方並換算。</p>
+        </div>
+
+        <button id="convertBtn" class="primary" type="button">立即換算農曆生日</button>
+        <div id="error" class="error"></div>
+      </section>
+
+      <section id="result" class="result" aria-live="polite">
+        <span class="tag">換算結果</span>
+        <h2 id="lunarFull">—</h2>
+        <p id="sourceDate">—</p>
+        <p id="solarFull">—</p>
+        <div class="grid">
+          <div class="item"><small>農曆月日</small><b id="lunarMonthDay">—</b></div>
+          <div class="item"><small>是否閏月</small><b id="isLeapMonth">—</b></div>
+          <div class="item wide"><small>生肖</small><b id="zodiac">—</b></div>
+        </div>
+      </section>
+
+      <div class="hint">
+        先驗證「輸入方式」與「顯示格式」。正式放進點燈、安太歲前，會再用農曆年前後與閏月生日做交叉測試，避免生肖或月份判斷錯誤。
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const westernMode=document.getElementById('westernMode');
+    const rocMode=document.getElementById('rocMode');
+    const manualLabel=document.getElementById('manualLabel');
+    const manualHint=document.getElementById('manualHint');
+    const manualDate=document.getElementById('manualDate');
+    const solarPicker=document.getElementById('solarPicker');
+    const convertBtn=document.getElementById('convertBtn');
+    const result=document.getElementById('result');
+    const errorBox=document.getElementById('error');
+    const lunarFull=document.getElementById('lunarFull');
+    const sourceDate=document.getElementById('sourceDate');
+    const solarFull=document.getElementById('solarFull');
+    const lunarMonthDay=document.getElementById('lunarMonthDay');
+    const isLeapMonth=document.getElementById('isLeapMonth');
+    const zodiac=document.getElementById('zodiac');
+
+    let mode='western';
+    let timer=null;
+    const ZODIAC_BY_BRANCH={子:'鼠',丑:'牛',寅:'虎',卯:'兔',辰:'龍',巳:'蛇',午:'馬',未:'羊',申:'猴',酉:'雞',戌:'狗',亥:'豬'};
+    const CN=['零','一','二','三','四','五','六','七','八','九','十'];
+
+    function setMode(nextMode){
+      mode=nextMode;
+      westernMode.classList.toggle('active',mode==='western');
+      rocMode.classList.toggle('active',mode==='roc');
+      manualDate.value='';
+      result.classList.remove('show');
+      errorBox.classList.remove('show');
+      if(mode==='western'){
+        manualLabel.innerHTML='西元生日 <span>（可直接手打）</span>';
+        manualDate.placeholder='例如：1986/09/06';
+        manualHint.textContent='可輸入 1986/09/06、1986-09-06 或 1986年9月6日。';
+      }else{
+        manualLabel.innerHTML='民國生日 <span>（可直接手打）</span>';
+        manualDate.placeholder='例如：75/09/06';
+        manualHint.textContent='可輸入 75/09/06、75-09-06 或 民國75年9月6日。';
+      }
+      manualDate.focus();
+    }
+
+    function normaliseParts(value){
+      const text=String(value||'')
+        .replace(/民國/g,'')
+        .replace(/[年月]/g,'/')
+        .replace(/日/g,'')
+        .replace(/[.\-]/g,'/')
+        .replace(/\s+/g,'')
+        .trim();
+      const found=text.match(/^(\d{1,4})\/(\d{1,2})\/(\d{1,2})$/);
+      if(!found) return null;
+      return found.slice(1).map(Number);
+    }
+
+    function validateDate(year,month,day){
+      const date=new Date(Date.UTC(year,month-1,day,4,0,0));
+      if(date.getUTCFullYear()!==year || date.getUTCMonth()!==month-1 || date.getUTCDate()!==day) return null;
+      if(year<1900 || year>2100) return null;
+      return date;
+    }
+
+    function parseManual(){
+      const parts=normaliseParts(manualDate.value);
+      if(!parts) return null;
+      let [year,month,day]=parts;
+      const display=mode==='roc' ? `民國${year}年${month}月${day}日` : `西元${year}年${month}月${day}日`;
+      if(mode==='roc') year+=1911;
+      const date=validateDate(year,month,day);
+      if(!date) return null;
+      return {date,year,month,day,display};
+    }
+
+    function formatSolar(year,month,day){
+      return `國曆：${year} 年 ${month} 月 ${day} 日`;
+    }
+
+    function chineseMonth(raw){
+      const leap=/閏|闰/.test(raw);
+      const n=Number(String(raw).replace(/[^0-9]/g,''));
+      if(!Number.isInteger(n)) return raw.replace(/\s/g,'');
+      const label=n===1?'正':n===11?'冬':n===12?'臘':CN[n]||String(n);
+      return `${leap?'閏':''}${label}月`;
+    }
+
+    function chineseDay(raw){
+      const n=Number(String(raw).replace(/[^0-9]/g,''));
+      if(!Number.isInteger(n)||n<1||n>30) return `${raw}日`;
+      if(n<=10) return `初${CN[n]}`;
+      if(n<20) return `十${CN[n-10]}`;
+      if(n===20) return '二十';
+      if(n<30) return `廿${CN[n-20]}`;
+      return '三十';
+    }
+
+    function getStemBranch(text){
+      const match=String(text).match(/[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]/);
+      return match?match[0]:'';
+    }
+
+    function renderConversion(data){
+      const formatter=new Intl.DateTimeFormat('zh-TW-u-ca-chinese',{year:'numeric',month:'long',day:'numeric',timeZone:'Asia/Taipei'});
+      const full=formatter.format(data.date);
+      const parts=formatter.formatToParts(data.date);
+      const month=parts.find(p=>p.type==='month')?.value||'';
+      const day=parts.find(p=>p.type==='day')?.value||'';
+      const stemBranch=getStemBranch(full);
+      const animal=stemBranch?ZODIAC_BY_BRANCH[stemBranch[1]]||'':'';
+      const leap=/閏|闰/.test(full+month);
+      const cMonth=chineseMonth(month);
+      const cDay=chineseDay(day);
+      lunarFull.textContent=`農曆：${stemBranch?stemBranch+'年':''}${cMonth}${cDay}${animal?`（${animal}年）`:''}`;
+      sourceDate.textContent=`原始輸入：${data.display}`;
+      solarFull.textContent=formatSolar(data.year,data.month,data.day);
+      lunarMonthDay.textContent=`${cMonth}${cDay}`;
+      isLeapMonth.textContent=leap?'是，請宮務人員確認辦理月份':'否';
+      zodiac.textContent=animal?`${animal}年（${stemBranch}）`:'此裝置未提供生肖資料';
+      result.classList.add('show');
+    }
+
+    function convert(showError=true){
+      errorBox.classList.remove('show');
+      const data=parseManual();
+      if(!data){
+        result.classList.remove('show');
+        if(showError){
+          errorBox.textContent=mode==='roc'?'請輸入民國生日，例如：75/09/06。':'請輸入西元生日，例如：1986/09/06。';
+          errorBox.classList.add('show');
+        }
+        return;
+      }
+      try{renderConversion(data)}catch(error){
+        result.classList.remove('show');
+        errorBox.textContent='此手機瀏覽器暫時無法換算農曆。請更新 Safari 後再試。';
+        errorBox.classList.add('show');
+      }
+    }
+
+    function autoConvert(){
+      clearTimeout(timer);
+      timer=setTimeout(()=>{
+        if(normaliseParts(manualDate.value)) convert(false);
+      },350);
+    }
+
+    westernMode.addEventListener('click',()=>setMode('western'));
+    rocMode.addEventListener('click',()=>setMode('roc'));
+    manualDate.addEventListener('input',autoConvert);
+    convertBtn.addEventListener('click',()=>convert(true));
+    solarPicker.addEventListener('change',()=>{
+      if(!solarPicker.value) return;
+      const [y,m,d]=solarPicker.value.split('-').map(Number);
+      mode='western';
+      westernMode.classList.add('active');
+      rocMode.classList.remove('active');
+      manualLabel.innerHTML='西元生日 <span>（可直接手打）</span>';
+      manualDate.placeholder='例如：1986/09/06';
+      manualHint.textContent='可輸入 1986/09/06、1986-09-06 或 1986年9月6日。';
+      manualDate.value=`${y}/${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+      convert(true);
+    });
+  </script>
+</body>
+</html>
