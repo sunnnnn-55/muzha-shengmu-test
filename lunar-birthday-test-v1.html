@@ -29,6 +29,7 @@
     .result p{margin:6px 0;color:#705f4d;line-height:1.7}
     .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
     .item{padding:12px;border:1px solid #ead8b9;border-radius:9px;background:#fffaf1}
+    .item.wide{grid-column:1 / -1}
     .item small{display:block;color:#8a745d;font-size:12px}
     .item b{display:block;margin-top:5px;font-size:16px;line-height:1.45}
     .hint{margin-top:20px;padding:14px;border-left:3px solid var(--gold);background:#fff7e9;color:#705f4d;font-size:13px;line-height:1.75}
@@ -44,7 +45,7 @@
     </header>
     <main>
       <h1>生日換算</h1>
-      <p class="lead">香客只要選擇國曆生日，系統會顯示農曆日期與是否為閏月。此頁不會儲存任何資料。</p>
+      <p class="lead">香客只要選擇國曆生日，系統會顯示農曆日期、生肖與是否為閏月。此頁不會儲存任何資料。</p>
 
       <section class="card">
         <label for="solarDate">國曆生日 <span>（西元年月日）</span></label>
@@ -60,6 +61,7 @@
         <div class="grid">
           <div class="item"><small>農曆月日</small><b id="lunarMonthDay">—</b></div>
           <div class="item"><small>是否閏月</small><b id="isLeapMonth">—</b></div>
+          <div class="item wide"><small>生肖</small><b id="zodiac">—</b></div>
         </div>
       </section>
 
@@ -78,6 +80,10 @@
     const solarFull=document.getElementById('solarFull');
     const lunarMonthDay=document.getElementById('lunarMonthDay');
     const isLeapMonth=document.getElementById('isLeapMonth');
+    const zodiac=document.getElementById('zodiac');
+
+    const ZODIAC_BY_BRANCH={子:'鼠',丑:'牛',寅:'虎',卯:'兔',辰:'龍',巳:'蛇',午:'馬',未:'羊',申:'猴',酉:'雞',戌:'狗',亥:'豬'};
+    const CHINESE_DIGITS=['零','一','二','三','四','五','六','七','八','九','十'];
 
     function parseTaipeiDate(value){
       if(!value) return null;
@@ -89,6 +95,30 @@
     function formatSolar(value){
       const [y,m,d]=value.split('-').map(Number);
       return `國曆：${y} 年 ${m} 月 ${d} 日`;
+    }
+
+    function chineseMonth(rawMonth){
+      const leap=/閏|闰/.test(rawMonth);
+      const digits=rawMonth.replace(/[^0-9]/g,'');
+      if(!digits) return rawMonth.replace(/\s/g,'');
+      const n=Number(digits);
+      const named=n===1?'正':n===11?'冬':n===12?'臘':CHINESE_DIGITS[n]||digits;
+      return `${leap?'閏':''}${named}月`;
+    }
+
+    function chineseDay(rawDay){
+      const n=Number(String(rawDay).replace(/[^0-9]/g,''));
+      if(!Number.isInteger(n)||n<1||n>30) return `${rawDay}日`;
+      if(n<=10) return `初${CHINESE_DIGITS[n]}`;
+      if(n<20) return `十${CHINESE_DIGITS[n-10]}`;
+      if(n===20) return '二十';
+      if(n<30) return `廿${CHINESE_DIGITS[n-20]}`;
+      return '三十';
+    }
+
+    function getStemBranch(text){
+      const found=String(text).match(/[甲乙丙丁戊己庚辛壬癸][子丑寅卯辰巳午未申酉戌亥]/);
+      return found?found[0]:'';
     }
 
     function convert(){
@@ -109,11 +139,17 @@
         const month=parts.find(p=>p.type==='month')?.value||'';
         const day=parts.find(p=>p.type==='day')?.value||'';
         const hasLeap=/閏|闰/.test(full+month);
+        const stemBranch=getStemBranch(full);
+        const animal=stemBranch?ZODIAC_BY_BRANCH[stemBranch.charAt(1)]||'': '';
+        const formattedMonth=chineseMonth(month);
+        const formattedDay=chineseDay(day);
+        const formattedLunar=`${stemBranch?stemBranch+'年':''}${formattedMonth}${formattedDay}${animal?`（${animal}年）`:''}`;
 
-        lunarFull.textContent=`農曆：${full}`;
+        lunarFull.textContent=`農曆：${formattedLunar}`;
         solarFull.textContent=formatSolar(input.value);
-        lunarMonthDay.textContent=(month||day)?`${month}${day?' '+day+' 日':''}`:'請以完整農曆日期為準';
+        lunarMonthDay.textContent=`${formattedMonth}${formattedDay}`;
         isLeapMonth.textContent=hasLeap?'是，請宮務人員確認辦理月份':'否';
+        zodiac.textContent=animal?`${animal}年（${stemBranch}）`:'此裝置未提供生肖資料';
         result.classList.add('show');
       }catch(err){
         errorBox.textContent='此手機瀏覽器暫時無法換算農曆。請更新 Safari 後再試。';
